@@ -282,6 +282,7 @@
         * [Graphical Panel Controls: Bitmap Button](vehicle-spy-main-menus/main-menu-measurement/graphical-panels/graphical-panels-tools/graphical-panel-controls-bitmap-button.md)
         * [Graphical Panel Controls: Panel Button](vehicle-spy-main-menus/main-menu-measurement/graphical-panels/graphical-panels-tools/graphical-panel-controls-panel-button.md)
         * [Graphical Panel Controls: Hex Edit](vehicle-spy-main-menus/main-menu-measurement/graphical-panels/graphical-panels-tools/graphical-panel-controls-hex-edit.md)
+        * [Graphical Panel Controls: SVG Graphic](vehicle-spy-main-menus/main-menu-measurement/graphical-panels/graphical-panels-tools/graphical-panel-controls-svg-graphic.md)
       * [Graphical Panels: Add or Delete a Tool](vehicle-spy-main-menus/main-menu-measurement/graphical-panels/graphical-panels-add-or-delete-a-tool.md)
       * [Graphical Panels: Tool Properties](vehicle-spy-main-menus/main-menu-measurement/graphical-panels/graphical-panels-tool-properties.md)
       * [Graphical Panels: Move a Tool](vehicle-spy-main-menus/main-menu-measurement/graphical-panels/graphical-panels-move-a-tool.md)
