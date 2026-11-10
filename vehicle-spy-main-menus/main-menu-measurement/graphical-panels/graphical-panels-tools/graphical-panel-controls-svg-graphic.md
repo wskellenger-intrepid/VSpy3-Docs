@@ -109,9 +109,89 @@ Loading it adds the rows **In: rpm** and **Out: horn**.
 
 To build a different gauge, change the scale in the script, not in Vehicle Spy. To add a second input, declare a second name in the file and read it in the same event.
 
+## Examples
+
+Two example SVG files show the two ways to animate a drawing. The car uses only a style sheet. The dashboard uses a script. To try one, add an SVG Graphic to a panel, choose the file with **SVG File**, and connect the **In:** and **Out:** rows to signals as described under each example.
+
+### Example: A Car With Doors
+
+Download [car.svg](../../../../.gitbook/assets/svg-graphic-car.svg).
+
+The file shows a two-door car seen from above, with its front to the right. Each door is an input. When the value of an input is 1, a red line appears at that door, as if the door were open. When the value is 0, the line goes away.
+
+![Figure 1: The car with both doors closed (left), and with the left door open (right).](../../../../.gitbook/assets/svg-graphic-car-states.png)
+
+**Table 3: Names in car.svg**
+
+| Name | Kind | Meaning |
+| ---- | ---- | ------- |
+| door_left | Input | The left door, the top of the picture. 0 is closed and 1 is open. |
+| door_right | Input | The right door, the bottom of the picture. 0 is closed and 1 is open. |
+| lock | Output | The LOCK and UNLOCK buttons. A click on LOCK sets the output to 1. A click on UNLOCK sets it to 0. |
+
+**This file has no script.** Vehicle Spy writes the value of an input into the `data-vspy-value` attribute of the element that declares it. The style sheet at the top of the file shows the red line when that value is 1:
+
+```css
+.door-open { opacity: 0; }
+.door-open[data-vspy-value="1"] { opacity: 1; }
+```
+
+Each door is a group that holds its line, drawn from the door's hinge outward:
+
+```xml
+<g class="door-open" data-vspy-in="door_left"><line x1="578" y1="44" x2="338" y2="-82"/></g>
+```
+
+To try it:
+
+1. Add an SVG Graphic and choose `car.svg`. The rows **In: door_left**, **In: door_right** and **Out: lock** appear.
+2. Double-click each **In:** row and choose a signal that is 0 when the door is closed and 1 when it is open. For a test without a vehicle, create an Application Signal for each door and change its value. A signal that is not 0 or 1 does not match the rule: use an expression that gives 0 or 1. The rule also does not match when **Evaluate as text** is checked for the row, because the SVG then receives the formatted text.
+3. Start the measurement and change a signal. The red line appears and goes away.
+4. Double-click **Out: lock** and choose the signal that the buttons set. A click on LOCK sets it to 1 and a click on UNLOCK sets it to 0. Both buttons use the same output: the value they set is in their `data-vspy-click` attribute.
+
+Each button is a group like this one:
+
+```xml
+<g class="btn" data-vspy-out="lock" data-vspy-click="0"> ... UNLOCK ... </g>
+```
+
+To use another car, replace the drawing and keep the two door groups. Move their lines to the doors of the new drawing. For a car with four doors, copy a group, change its `data-vspy-in` name and its line, and choose the file again.
+
+The car drawing is "Red Car (top-down)" by sheikh_tuhin, released as CC0 (public domain) on [OpenGameArt](https://opengameart.org/content/red-car-top-down).
+
+### Example: A Dashboard
+
+Download [dashboard.svg](../../../../.gitbook/assets/svg-graphic-dashboard.svg).
+
+The file draws four gauges and two bar graphs. A script in the file draws the needles and fills the bars, because an attribute alone cannot move a needle.
+
+![Figure 2: The dashboard with sample values.](../../../../.gitbook/assets/svg-graphic-dashboard.png)
+
+**Table 4: Names in dashboard.svg**
+
+| Name | Kind | Meaning |
+| ---- | ---- | ------- |
+| rpm | Input | Engine speed gauge, 0 to 8000 (the dial is marked in thousands), red above 6500. |
+| speed | Input | Vehicle speed gauge, 0 to 240. |
+| coolant | Input | Coolant temperature gauge, 40 to 120, red above 105. |
+| oil | Input | Oil pressure gauge, 0 to 100. |
+| throttle | Input | Throttle bar, 0 to 100 percent. |
+| battery | Input | Battery voltage bar, 8 to 16 volts. It turns red below 11.5. |
+| setthrottle | Output | A click on the throttle bar sets this output to the percentage under the pointer. |
+| horn | Output | The HORN button. A click sets the output to 1. |
+
+Each gauge is one line near the top of the file. Its scale is in the `data-min`, `data-max` and `data-step` attributes next to its input name. To add a gauge, copy one of those lines, change its name, its scale and its position, and choose the file again. Each bar is a short group that holds its track, its fill and two texts: copy the whole group to add a bar. A bar has `data-min` and `data-max` too, and `data-low` turns it red below that value.
+
+To try it:
+
+1. Add an SVG Graphic and choose `dashboard.svg`. The six **In:** rows and two **Out:** rows appear.
+2. Choose a signal for each row. For a test without a vehicle, create an Application Signal for each input.
+3. Start the measurement and change the signals. The needles move and the bars fill.
+4. Choose a signal for **Out: setthrottle** and click the throttle bar. The signal is set to the percentage you clicked.
+
 ## Things to Know
 
-* **The setup keeps its own copy.** If you change the SVG file afterward, double-click **SVG File** and choose it again. Inputs and outputs whose names are still in the file keep their signals. A name that you rename or remove loses its signal, and a new name starts with none.
+* **The setup keeps its own copy.** If you change the SVG file afterward, double-click **SVG File** and choose it again. Inputs and outputs whose names are still in the file keep their signals. A name that you rename or remove loses its signal, and a new name starts with none. The setup remembers only the name of the file, not its folder, so you browse to the file each time. **Undo** brings back the previous SVG.
 * **Outputs set signals only while the measurement is running.**
 * **The page has no network access.** Links, external images, external fonts and external scripts do not load. Put images inside the SVG as `data:` addresses. Fonts cannot be embedded: the SVG can only use fonts that are installed on the computer. A link in the SVG goes nowhere, and a script cannot open a new window.
 * **Size.** An SVG file larger than about 2 MB cannot be shown. Vehicle Spy adds a message to the **Problem Log** that the SVG could not be loaded.

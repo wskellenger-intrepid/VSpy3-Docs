@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340">
+  <!-- Vehicle Spy SVG Graphic example: four gauges and two bar graphs.
+
+       Inputs  (data-vspy-in):  rpm, speed, coolant, oil, throttle, battery
+       Outputs (data-vspy-out): setthrottle - click the throttle bar to set that percentage
+                                horn        - set to 1 by the HORN button
+
+       A gauge is a <g class="gauge"> and a bar is a <g class="bar">. Both carry their input name
+       in data-vspy-in and their scale in data-min / data-max, so to add one, copy a group, change
+       those attributes and its translate(). Vehicle Spy finds the names by reading this file as
+       text, so every name must be written out here and not made up by the script. -->
+
+  <!-- Declares the setthrottle output: it is sent from the script below, not by a click on this -->
+  <desc data-vspy-out="setthrottle">setthrottle is sent by the script when the throttle bar is clicked</desc>
+
+  <style>
+    svg { user-select: none; -webkit-user-select: none; font-family: "Segoe UI", Arial, sans-serif; }
+    .bg { fill: #1b1d23; }
+    .face { fill: #262a33; stroke: #6b7280; stroke-width: 3; }
+    .tick { stroke: #9ca3af; stroke-width: 2; }
+    .num { fill: #cbd5e1; font-size: 10px; text-anchor: middle; }
+    .redline { fill: none; stroke: #ef4444; stroke-width: 5; }
+    .needle { stroke: #f87171; stroke-width: 3; stroke-linecap: round; }
+    .hub { fill: #d1d5db; }
+    .readout { fill: #fff; font-size: 17px; font-weight: 600; text-anchor: middle; }
+    .unit { fill: #94a3b8; font-size: 11px; text-anchor: middle; }
+    .track { fill: #262a33; stroke: #6b7280; stroke-width: 2; }
+    .fill { fill: #38bdf8; }
+    .low .fill { fill: #ef4444; }
+    .caption { fill: #cbd5e1; font-size: 12px; }
+    .value { fill: #fff; font-size: 12px; font-weight: 600; text-anchor: end; }
+    .clickable { cursor: pointer; }
+    .btn { cursor: pointer; }
+    .btn rect { fill: #4b5563; }
+    .btn:hover rect { fill: #6b7280; }
+    .btn text { fill: #fff; font-size: 14px; font-weight: 600; text-anchor: middle; pointer-events: none; }
+  </style>
+
+  <rect class="bg" width="640" height="340"/>
+
+  <!-- gauges: 270 degree sweep, ticks every data-step, red from data-red when given -->
+  <g class="gauge" data-vspy-in="rpm"     data-min="0"  data-max="8000" data-step="1000" data-div="1000" data-red="6500" data-label="RPM x1000"          transform="translate(80 100)"/>
+  <g class="gauge" data-vspy-in="speed"   data-min="0"  data-max="240"  data-step="40"                                   data-label="km/h"         transform="translate(240 100)"/>
+  <g class="gauge" data-vspy-in="coolant" data-min="40" data-max="120"  data-step="20"                  data-red="105"   data-label="Coolant &#176;C" transform="translate(400 100)"/>
+  <g class="gauge" data-vspy-in="oil"     data-min="0"  data-max="100"  data-step="20"                                   data-label="Oil psi"      transform="translate(560 100)"/>
+
+  <!-- bars: the fill grows with the value; data-low turns it red below that value -->
+  <g class="bar clickable" data-vspy-in="throttle" data-min="0" data-max="100" data-label="Throttle %" transform="translate(30 215)">
+    <rect class="track" id="throttle-track" width="580" height="22" rx="4"/>
+    <rect class="fill" height="22" rx="4" pointer-events="none"/>
+    <text class="caption" y="-6" pointer-events="none"/>
+    <text class="value" x="580" y="-6" pointer-events="none"/>
+  </g>
+  <g class="bar" data-vspy-in="battery" data-min="8" data-max="16" data-low="11.5" data-dec="1" data-label="Battery V" transform="translate(30 265)">
+    <rect class="track" width="460" height="22" rx="4"/>
+    <rect class="fill" height="22" rx="4" pointer-events="none"/>
+    <text class="caption" y="-6" pointer-events="none"/>
+    <text class="value" x="460" y="-6" pointer-events="none"/>
+  </g>
+
+  <g id="horn" class="btn" data-vspy-out="horn" data-vspy-click="1">
+    <rect x="510" y="265" width="100" height="22" rx="4"/><text x="560" y="281">HORN</text>
+  </g>
+
+  <script><![CDATA[
+    var NS = 'http://www.w3.org/2000/svg', START = -135, SPAN = 270;
+
+    function el(tag, attrs, parent, text) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      if (text !== undefined) e.textContent = text;
+      if (parent) parent.appendChild(e);
+      return e;
+    }
+    // point at an angle (0 = straight up, clockwise) and radius from the gauge centre
+    function pt(deg, r) { var a = deg * Math.PI / 180; return [Math.sin(a) * r, -Math.cos(a) * r]; }
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    function buildGauge(g) {
+      var min = +g.dataset.min, max = +g.dataset.max, step = +g.dataset.step, div = +(g.dataset.div || 1);
+      function angle(v) { return START + SPAN * (clamp(v, min, max) - min) / (max - min); }
+
+      el('circle', { 'class': 'face', r: 70 }, g);
+      if (g.dataset.red) {
+        var a = pt(angle(+g.dataset.red), 62), b = pt(START + SPAN, 62);
+        el('path', { 'class': 'redline', d: 'M' + a + ' A62 62 0 0 1 ' + b }, g);
+      }
+      for (var v = min; v <= max; v += step) {
+        var p1 = pt(angle(v), 56), p2 = pt(angle(v), 66), p3 = pt(angle(v), 44);
+        el('line', { 'class': 'tick', x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1] }, g);
+        el('text', { 'class': 'num', x: p3[0], y: p3[1] + 3 }, g, v / div);
+      }
+      var needle = el('line', { 'class': 'needle', x1: 0, y1: 0, x2: 0, y2: -48 }, g);
+      el('circle', { 'class': 'hub', r: 5 }, g);
+      var readout = el('text', { 'class': 'readout', y: 38 }, g);
+      el('text', { 'class': 'unit', y: 54 }, g, g.dataset.label);
+
+      g._set = function (value) {
+        needle.setAttribute('transform', 'rotate(' + angle(value) + ')');
+        readout.textContent = Math.round(value);
+      };
+      g._set(min);
+    }
+
+    function buildBar(g) {
+      var min = +g.dataset.min, max = +g.dataset.max, dec = +(g.dataset.dec || 0);
+      var track = g.querySelector('.track'), fill = g.querySelector('.fill'), texts = g.querySelectorAll('text');
+      var width = +track.getAttribute('width');
+      texts[0].textContent = g.dataset.label;
+
+      g._set = function (value) {
+        fill.setAttribute('width', width * (clamp(value, min, max) - min) / (max - min));
+        texts[1].textContent = value.toFixed(dec);
+        g.classList.toggle('low', g.dataset.low !== undefined && value < +g.dataset.low);
+      };
+      g._set(min);
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll('.gauge'), buildGauge);
+    Array.prototype.forEach.call(document.querySelectorAll('.bar'), buildBar);
+
+    // values from Vehicle Spy: only the names that changed are in e.detail
+    document.addEventListener('vspy', function (e) {
+      for (var name in e.detail) {
+        var items = document.querySelectorAll('[data-vspy-in="' + name + '"]');
+        for (var i = 0; i < items.length; i++)
+          if (items[i]._set) items[i]._set(Number(e.detail[name]) || 0);
+      }
+    });
+
+    // click the throttle bar: the percentage under the pointer
+    document.getElementById('throttle-track').addEventListener('click', function (e) {
+      var r = e.target.getBoundingClientRect();
+      vspy.set('setthrottle', Math.round(clamp((e.clientX - r.left) / r.width, 0, 1) * 100));
+    });
+  ]]></script>
+</svg>
